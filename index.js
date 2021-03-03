@@ -34,3 +34,5 @@ app.use(morgan('dev'));
 app.listen(3000, function() {
   console.log('Server is running');
 })
+
+module.exporrts = app;
