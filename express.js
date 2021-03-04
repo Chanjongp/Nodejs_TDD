@@ -24,10 +24,25 @@ app.get('/users', (req, res) => {
 
 app.get('/user/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const user = users.filter((user) => {return user.id === id});
-  console.log(user);
-  res.json(user);
+  if(Number.isNaN(id)){
+    return res.status(400).end();
+  }
+  const user = users.filter((user) => {return user.id === id})[0];
+  if(!user){
+      return res.status(404).end();
+  } else {
+    res.json(user); 
+  }
 }) 
+
+app.delete('/user/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if(Number.isNaN(id)){
+    return res.status(400).end();
+  }
+  users = users.filter((user) => {return user.id !== id});
+  return res.status(204).end()
+})
 
 app.post('/users', function(req, res) {
   res.send(users)
