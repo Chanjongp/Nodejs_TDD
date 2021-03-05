@@ -11,11 +11,25 @@ var users = [
 app.use(morgan('dev'));
 
 app.get('/users', (req, res) => {
-  res.json(users)
+  req.query.limit = req.query.limit || 10;
+  console.log(req.query.limit);
+  const limit = parseInt(req.query.limit, 10); //query 값으로 들어오는 숫자는 Str "2"이기 때문에 Int로 바꿔줘야 함
+  if(Number.isNaN(limit)) { // limit가 숫자가 아니면
+    return res.status(400).end();
+  } else {
+    res.json(users.slice(0, limit));  
+  }
+  // res.json(users)
 })
 
-app.post('/users', function(req, res) {
+app.get('/user/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const user = users.filter((user) => {return user.id === id});
+  console.log(user);
+  res.json(user);
+}) 
 
+app.post('/users', function(req, res) {
   res.send(users)
 })
 
