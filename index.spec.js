@@ -63,12 +63,59 @@ describe('GET /users/1는', ()=> {
     })
 })
 
-describe('GET /users/1', () => {
+describe('GET /user/1', () => {
     describe('성공시', () => {
         it('204를 응답한다', (done) => {
             request(app)
-                .delete('/users/1')
+                .delete('/user/1')
                 .expect(204)
+                .end(done)
+        })
+    })
+    describe('실패시', () => {
+        it('400을 응답한다', (done) => {
+            request(app)
+               .delete('/user/c')
+               .expect(400)
+               .end(done) 
+        })
+    })
+})
+
+describe('POST /users', () => {
+    describe('성공시', () => {
+        let name = 'daniel';
+        let body;
+        before((done)=> {
+            request(app)
+                .post('/users')
+                .send({name})
+                .expect(201)
+                .end((err, res) => {
+                    body = res.body;
+                    done();
+                })
+        })
+        it('생성된 유저 객체를 반환', () => {
+            body.should.have.property('id');
+        })
+        it('입력한 name을 반환한다', ()=>{
+            body.should.have.property('name', name);
+        })
+    })
+    describe('실패시', () => {
+        it('name 파라매터 누락시 400 반환', (done) => {
+            request(app)
+                .post('/users')
+                .send({})
+                .expect(400)
+                .end(done)
+        })
+        it('name이 중복일 경우 409 반환', (done) => {
+            request(app)
+                .post('/users')
+                .send({name: 'alice'})
+                .expect(409)
                 .end(done)
         })
     })
