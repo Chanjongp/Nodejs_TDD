@@ -4,12 +4,13 @@ const port = 3000
 var morgan = require('morgan');
 var user = require('./api/user');
 
-app.use(express.json())
-app.use(morgan('dev'));
+app.use(express.json());
+
 app.use('/users', user);
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
-})
+if (process.env.NODE_ENV === 'test'){
+  app.use(morgan('dev'));
+}
+
 
 module.exports = app;
