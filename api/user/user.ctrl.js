@@ -1,18 +1,20 @@
 // api 로직
-var users = [
-    {id: 1, name : 'alice'},
-    {id: 2, name : 'bek'},
-    {id: 3, name : 'chris'},
-  ]
+// const { where } = require('sequelize/types');
+// const { response } = require('../../express.js');
+const models = require('../../models.js');
 
 const index = (req, res) => {
     req.query.limit = req.query.limit || 10;
     const limit = parseInt(req.query.limit, 10); //query 값으로 들어오는 숫자는 Str "2"이기 때문에 Int로 바꿔줘야 함
     if (Number.isNaN(limit)) { // limit가 숫자가 아니면
         return res.status(400).end();
-    } else {
-        res.json(users.slice(0, limit));
     }
+    models.User.findAll({
+        limit: limit
+        })
+        .then(users => {
+            res.json(users);
+        })
 }
 
 const show = (req, res) => {
@@ -20,20 +22,26 @@ const show = (req, res) => {
     if (Number.isNaN(id)) {
         return res.status(400).end();
     }
-    const user = users.filter((user) => { return user.id === id })[0];
-    if (!user) {
-        return res.status(404).end();
-    } else {
-        res.json(user);
-    }
+
+    models.User.findOne({where: {id}})
+        .then(user => {
+            if (!user) {
+                return res.status(404).end();
+            }
+            res.json(user);
+        })
 }
-const destory = (req, res) => {
+
+const destroy = (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) {
         return res.status(400).end();
     }
-    users = users.filter((user) => { return user.id !== id });
-    return res.status(204).end()
+    models.User.destroy({
+        where: {id}
+    }).then(() => {
+        res.status(204).end()
+    })
 }
 
 const create = function (req, res) {
@@ -41,37 +49,47 @@ const create = function (req, res) {
     const name = req.body.name;
     if (!name) { return res.status(400).end() }
 
-    const isConflict = users.filter((user) => { return user.name === name }).length;
-    if (isConflict) {
-        return res.status(409).end()
-    }
-    const id = Date.now();
-    const user = { id, name };
-    users.push(user);
-    res.status(201).json(user)
+    models.User.create({name})
+        .then(user => {
+            res.status(201).json(user);
+        })
+        .catch(err => {
+            if(err.message === "Validation error"){
+                return res.status(409).end();
+            }
+            res.status(500).end();
+        })
 }
 
 const update = (req, res) => {
     const id = parseInt(req.params.id, 10);
-    if(Number.isNaN(id)){ return res.status(400).end() }
+    if(Number.isNaN(id)){ return res.status(400).end(); }
   
     const name = req.body.name;
-    if(!name) {  return res.status(400).end() }
-    
-    const user = users.filter((user) => {return  user.id === id})[0];
-    if(!user) { return res.status(404).end() }
-    
-    const isConflict = users.filter((user) => {return user.name === name}).length;
-    if(isConflict) {return res.status(409).end()}
-    
-    user.name = name;
-    res.json(user);
+    if(!name) {  return res.status(400).end(); }
+
+    models.User.findOne({where : {id}})
+        .then(user =>  {
+            if(!user){
+                return res.status(404).end();
+            }
+            user.name = name;
+            user.save()
+                .then(_ => {
+                    res.json(user);
+                })
+                .catch(err => {
+                    if(err.message === "Validation error"){
+                        return res.status(409).end();
+                    }
+                })
+        })
   }
 
 module.exports = {
     index: index,
     show: show,
-    destory: destory,
+    destroy: destroy,
     create: create,
     update: update
 }

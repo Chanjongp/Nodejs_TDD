@@ -7,7 +7,7 @@ router.get('/', ctrl.index)
   
 router.get('/:id', ctrl.show) 
   
-router.delete('/:id', ctrl.destory)
+router.delete('/:id', ctrl.destroy)
   
 router.post('/', ctrl.create)
   
